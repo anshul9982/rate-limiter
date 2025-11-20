@@ -20,15 +20,14 @@ public class TestController {
 
     @GetMapping("/test/{key}")
     public Mono<ResponseEntity<String>> testRateLimiter(@PathVariable String key){
-        return Mono.fromCallable(()-> {
-            Boolean isAllowed = rateLimiterService.isAllowed(key, 5, 60);
-            if(isAllowed){
-                return ResponseEntity.ok("Request is allowed");
-            }else{
-                return ResponseEntity.status(429).body("Request is not allowed");
-            }
-        });
+        return rateLimiterService.isAllowed(key)
+                .map(isAllowed->{
+                    if(isAllowed){
+                        return ResponseEntity.ok("Request is allowed");
+                    }else{
+                        return ResponseEntity.status(429).body("Request is not allowed");
+                    }
+                });
     }
-
 
 }

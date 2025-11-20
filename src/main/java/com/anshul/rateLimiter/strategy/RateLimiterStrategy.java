@@ -12,7 +12,7 @@ public interface RateLimiterStrategy {
      * @param windowSeconds Time window in seconds
      * @return true if allowed, false if blocked
      */
-    boolean isAllowed(String key, int limit, int windowSeconds);
+    Mono<Boolean> isAllowed(String key, int limit, int windowSeconds);
 
     }
 

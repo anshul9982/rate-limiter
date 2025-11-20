@@ -19,4 +19,9 @@ public class RateLimitConfigService {
         })
                 .orElseGet(()-> repository.save(ClientRateLimitConfig.builder().clientKey(dto.getClientKey()).limit(dto.getLimit()).windowSeconds(dto.getWindowSeconds()).build()));
     }
+    public ClientRateLimitConfig getConfig(String clientKey){
+        return repository.findByClientKey(clientKey).orElseGet(()->{
+            return ClientRateLimitConfig.builder().clientKey(clientKey).limit(10).windowSeconds(60).build();
+        });
+    }
 }

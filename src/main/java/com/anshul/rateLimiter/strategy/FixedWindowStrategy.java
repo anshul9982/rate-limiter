@@ -1,8 +1,9 @@
 package com.anshul.rateLimiter.strategy;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
@@ -10,16 +11,16 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class FixedWindowStrategy implements RateLimiterStrategy {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final ReactiveRedisTemplate<String, String> redisTemplate;
     @Override
-    public boolean isAllowed(String key, int limit, int windowSeconds){
-        Long count = redisTemplate.opsForValue().increment(key);
-        if(count != null && count == 1){
-            redisTemplate.expire(key, Duration.ofSeconds(windowSeconds));
-        }
-
-        return count != null && count<=limit;
+    public Mono<Boolean> isAllowed(String key, int limit, int windowSeconds) {
+        return redisTemplate.opsForValue().increment(key)
+                .flatMap(count -> {
+                    Mono<Long> afterExpire = (count != null && count == 1L)
+                            ? redisTemplate.expire(key, Duration.ofSeconds(windowSeconds)).thenReturn(count)
+                            : Mono.just(count);
+                    return afterExpire;
+                })
+                .map(count -> count != null && count <= limit);
     }
-
-
 }
