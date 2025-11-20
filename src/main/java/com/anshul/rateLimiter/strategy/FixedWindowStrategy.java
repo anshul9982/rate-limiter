@@ -14,7 +14,7 @@ public class FixedWindowStrategy implements RateLimiterStrategy {
     @Override
     public boolean isAllowed(String key, int limit, int windowSeconds){
         Long count = redisTemplate.opsForValue().increment(key);
-        if(count != null || count == 1){
+        if(count != null && count == 1){
             redisTemplate.expire(key, Duration.ofSeconds(windowSeconds));
         }
 
